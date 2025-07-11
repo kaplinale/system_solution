@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-service
+  labels:
+    app: my-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-service
+  template:
+    metadata:
+      labels:
+        app: my-service
+  spec:
+    volumes:
+    - name: my-pv-storage
+      persistentVolumeClaim:
+        claimName: my-pv-claim
+    containers:
+    - name: my-service-container
+      image: hub/my-service
+      ports:
+      - containerPort: 8081
+    initContainers:
+    - name: init-myservice
+      image: custom-busybox:latest #кастомный образ, собранный на базовом busybox
+      command: ['/bin/do-migration.sh']
+    volumeMounts:
+      - mountPath: "/mnt/data"
+        name: my-pv-storage
+    nodeSelector:
+      my-label: "my-label-value" #не забыв навесить лейбаки на ноды конечно же
+        
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/storage/data"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
