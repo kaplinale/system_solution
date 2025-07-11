@@ -8,4 +8,4 @@ kubectl delete certificate cert_name
 
 4. Проверяем:
 kubectl decribe certificate cert_name
-curl http://my-site.my-domain.com
+curl https://my-site.my-domain.com
